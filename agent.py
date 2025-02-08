@@ -26,9 +26,9 @@ class Action:
     Simple class that will act as an enum
     """
 
-    UP = 1
-    DOWN = 2
-    LEFT = 3
+    UP = 0
+    DOWN = 1
+    LEFT = 2
     RIGHT = 3
 
 
@@ -73,7 +73,21 @@ class Agent:
         self.exploration_rate = exploration_rate
         # self.actions = [] // Possibly useless, will use class Action
 
-    # def choose_action(self, state, env):
+    def choose_action(self, state, env):
+        actions = [
+            value for key, value in vars(Action).items() if not key.startswith("__")
+        ]
+
+        if np.random.random() < self.exploration_rate:  # Exloration
+            return np.random.choice(actions)
+        else:  # Best action
+            state_key = state.get_key()
+            q_values = {a: self.__class__.q_table[(state_key, a)] for a in actions}
+            max_q = max(q_values.values()) if q_values else 0
+
+            # All actions with equal max value
+            best_actions = [a for a, q in q_values.items() if q == max_q]
+            return np.random.choice(best_actions) if best_actions else None
 
     # def update_q_table(self, state, action, reward, next_state):
 
