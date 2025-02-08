@@ -42,7 +42,7 @@ def generate_blobs(rows, cols, fill_ratio, num_blobs):
 
             # Move randomly in four directions
             dx, dy = random.choice([(0, 1), (1, 0), (0, -1), (-1, 0)])
-            x, y = max(0, min(rows - 1, x + dx)), max(0, min(cols - 1, y + dy))  # Stay in bound            
+            x, y = max(0, min(rows - 1, x + dx)), max(0, min(cols - 1, y + dy))  # Stay in bound
 
     # Distribute steps among blobs
     steps_per_blob = max(1, target_fill // num_blobs)
@@ -90,10 +90,10 @@ def grid_to_rgb(grid):
     return np.array(rgb_array)
 
 
-def array_to_images(grid):
+def array_to_images(grid, frame_size):
     normalized_grid = cv.normalize(grid, None, 0, 255, cv.NORM_MINMAX, dtype=cv.CV_8U)
     image = cv.cvtColor(normalized_grid, cv.COLOR_RGB2BGR)
-    scaled_image = cv.resize(image, (1000, 1000), interpolation=cv.INTER_NEAREST)
+    scaled_image = cv.resize(image, frame_size, interpolation=cv.INTER_NEAREST)
     return scaled_image
 
 
@@ -108,20 +108,19 @@ def images_to_video(images, frame_size):
 
 
 if __name__ == '__main__':
-    # Example usage
-    # rows, cols = 20, 20
+    frame_size = (1000, 1000)
     rows, cols = 1000, 1000
-    # fill_ratio = 0.3
     fill_ratio = 0.6
     num_blobs = 5
 
     grid = generate_blobs(rows, cols, fill_ratio, num_blobs)
-    grid2 = np.random.randint(0, 256, (5, 5, 3), dtype=np.uint8)
     rgb_grid = grid_to_rgb(grid)
-    print(rgb_grid)
-    print(grid2)
-    image = array_to_images(rgb_grid)
+    image = array_to_images(rgb_grid, frame_size)
 
-    cv.imshow('test', image)
-    cv.waitKey(0)
-    cv.destroyAllWindows()
+    images_to_video([image, image, image], frame_size)
+
+    # image = np.hstack((image, image))
+
+    # cv.imshow('test', image)
+    # cv.waitKey(0)
+    # cv.destroyAllWindows()
