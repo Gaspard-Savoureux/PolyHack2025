@@ -4,6 +4,25 @@ import numpy as np
 import cv2 as cv
 import random
 
+# generation settings
+ROWS = 100
+COLS = 100
+FILL_RATIO = 0.2
+NUM_BLOBS = 20
+
+# video settings
+CODEC = 'XVID'
+FRAMES_PER_SECOND = 1
+
+# image settings
+FRAME_SIZE = (1000, 1000)  # (width, height)
+
+# RGB colors
+MINERAL_COLOR = np.array([50, 50, 50])
+EMPTY_COLOR = np.array([150, 150, 150])
+ERROR_COLOR = np.array([255, 0, 0])
+
+
 def generate_blobs(rows, cols, fill_ratio, num_blobs):
     """
     Generates a 2D array with multiple random blobs while ensuring a specific fill ratio.
@@ -74,16 +93,14 @@ def generate_blobs(rows, cols, fill_ratio, num_blobs):
 def pixel_to_rgb(pixel):
     match pixel:
         case 1:
-            return np.array([50, 50, 50])
+            return MINERAL_COLOR
         case 0:
-            return np.array([150, 150, 150])
+            return EMPTY_COLOR
         case _:
-            return np.array([0, 0, 255])
-
+            return ERROR_COLOR
 
 def grid_to_rgb(grid):
     rgb_array = []
-
     for row in grid:
         new_row = []
         for pixel in row:
@@ -102,8 +119,8 @@ def array_to_images(grid, frame_size):
 
 
 def images_to_video(images, frame_size):
-    fourcc = cv.VideoWriter_fourcc(*'XVID')
-    video = cv.VideoWriter('output.mp4', fourcc, 1, frame_size)
+    codec = cv.VideoWriter_fourcc(*CODEC)
+    video = cv.VideoWriter('output.mp4', codec, FRAMES_PER_SECOND, frame_size)
 
     for image in images:
         video.write(image)
@@ -112,15 +129,11 @@ def images_to_video(images, frame_size):
 
 
 if __name__ == '__main__':
-    frame_size = (1000, 1000)
-    rows, cols = 100, 100
-    fill_ratio = 0.2
-    num_blobs = 20
-
-    grid = generate_blobs(rows, cols, fill_ratio, num_blobs)
-    print(grid)
-    rgb_grid = grid_to_rgb(grid)
-    image = array_to_images(rgb_grid, frame_size)
+    
+    generated_map = generate_blobs(ROWS, COLS, FILL_RATIO, NUM_BLOBS)
+    print(generated_map)
+    rgb_grid = grid_to_rgb(generated_map)
+    image = array_to_images(rgb_grid, FRAME_SIZE)
 
     # images_to_video([image, image, image], frame_size)
 
