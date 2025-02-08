@@ -34,27 +34,32 @@ class Action:
 
 class Agent:
     """
-    A class used to represent the world
-
+    Class that represent agents that will work as a swarm.
     ...
 
     Attributes
     ----------
-    x : int
-        initial x coordinate
-    y : int
-        initial y coordinate
-    fov: int
-      field of view of the agent
-    # The following are self explatory
-    learning_rate: float,
-    discount_factor: float,
-    exploration_rate: float,
+    q_table: defaultdict(float)
+      common q_table for the agent
+
     Methods
     -------
-    function_name(param=None)
-        Description
+    __init__(
+      x : int
+          initial x coordinate
+      y : int
+          initial y coordinate
+      fov: int
+        field of view of the agent
+      # The following are self explatory
+      learning_rate: float,
+      discount_factor: float,
+      exploration_rate: float,
+    )
+        Create an agent
     """
+
+    q_table = defaultdict(float)
 
     def __init__(
         self,
@@ -89,7 +94,22 @@ class Agent:
             best_actions = [a for a, q in q_values.items() if q == max_q]
             return np.random.choice(best_actions) if best_actions else None
 
-    # def update_q_table(self, state, action, reward, next_state):
+    def update_q_table(self, state, action, reward, next_state):
+        state_key = state.get_key()
+        next_key = next_state.get_key() if next_state else None
+        current_q = self.__class__.q_table.get((state_key, action), 0)
+
+        next_max = (
+            max([self.__class__.q_table.get((next_key, a), 0) for a in self.actions])
+            if next_key
+            else 0
+        )
+
+        new_q = current_q + self.learning_rate * (
+            reward + self.discount_factor * next_max - current_q
+        )
+
+        self.__class__.q_table[(state_key, action)] = new_q
 
     # def save_q_table(cls, filename):
 
