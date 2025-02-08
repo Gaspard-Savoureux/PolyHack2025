@@ -1,5 +1,6 @@
 # Python librairies
 import numpy as np
+import random
 import pickle
 
 from collections import defaultdict
@@ -136,8 +137,8 @@ class Agent:
         state_grid = []
         for dx in range(-fov, fov + 1):
             for dy in range(-fov, fov + 1):
-                new_x = (x + dx) % env.grid_size
-                new_y = (y + dy) % env.grid_size
+                new_x = x + dx
+                new_y = y + dy
 
                 # if invalid pos, we skip
                 if not env.valid_pos((new_x, new_y)):
@@ -155,6 +156,7 @@ class Agent:
 
     def step(self, pos: (int, int), env: GridEnv, action: int) -> ((int, int), float):
         """ """
+        # print("pos: ", pos)
         new_x, new_y = pos
 
         match action:
@@ -179,4 +181,4 @@ class Agent:
             case 0:  # next cell is empty
                 return ((new_x, new_y), reward)
             case 1:  # next cell is part of vein
-                return ((new_x, new_y), reward + 10)
+                return ((pos[0], pos[1]), reward + 10)
