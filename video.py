@@ -103,7 +103,7 @@ def grid_to_rgb(grid):
     return np.array([pixel_to_rgb(pixel) for pixel in grid.flatten()]).reshape(grid.shape[0], grid.shape[1], 3)
 
 
-def array_to_images(grid, frame_size):
+def array_to_image(grid, frame_size):
     grid = np.array(grid, dtype=np.uint8)
     image = cv.cvtColor(grid, cv.COLOR_RGB2BGR)
     scaled_image = cv.resize(image, frame_size, interpolation=cv.INTER_NEAREST)
@@ -124,7 +124,7 @@ if __name__ == '__main__':
     
     generated_map = generate_blobs(ROWS, COLS, FILL_RATIO, NUM_BLOBS)
     
-    image = array_to_images(grid_to_rgb(generated_map), FRAME_SIZE)
+    image = array_to_image(grid_to_rgb(generated_map), FRAME_SIZE)
 
     # images_to_video([image, image, image], frame_size)
 
