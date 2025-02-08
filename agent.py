@@ -2,8 +2,10 @@
 import numpy as np
 import pickle
 
+from collections import defaultdict
+
 # local files
-from env import GridEnv
+from environment import GridEnv
 
 
 class State:
@@ -66,22 +68,23 @@ class Agent:
 
     def __init__(
         self,
-        x: int,
-        y: int,
+        # x: int,
+        # y: int,
         fov: int = 3,
         learning_rate: float = 0.90,
         discount_factor: float = 0.99,
         exploration_rate: float = 0.2,
     ):
-        self.x = x
-        self.y = y
+        # self.x = x
+        # self.y = y
         self.fov = fov
         self.learning_rate = learning_rate
         self.discount_factor = discount_factor
         self.exploration_rate = exploration_rate
+        self.state = State([0])  # CHARGER L'etat reel
         # self.actions = [] // Possibly useless, will use class Action
 
-    def choose_action(self, state, env):
+    def choose_action(self, state, env) -> int:
         actions = [
             value for key, value in vars(Action).items() if not key.startswith("__")
         ]
@@ -102,8 +105,12 @@ class Agent:
         next_key = next_state.get_key() if next_state else None
         current_q = self.__class__.q_table.get((state_key, action), 0)
 
+        actions = [
+            value for key, value in vars(Action).items() if not key.startswith("__")
+        ]
+
         next_max = (
-            max([self.__class__.q_table.get((next_key, a), 0) for a in self.actions])
+            max([self.__class__.q_table.get((next_key, a), 0) for a in actions])
             if next_key
             else 0
         )
@@ -121,3 +128,55 @@ class Agent:
     def load_q_table(self, filename):
         with open(filename, "rb") as f:
             self.q_table.update(pickle.load(f))
+
+    # TODO maybe rename get_sensor_output (for roleplaying reasons)
+    def get_state(self, env: GridEnv, pos: (int, int)):
+        x, y = pos
+        fov = self.fov
+        state_grid = []
+        for dx in range(-fov, fov + 1):
+            for dy in range(-fov, fov + 1):
+                new_x = (x + dx) % env.grid_size
+                new_y = (y + dy) % env.grid_size
+
+                # if invalid pos, we skip
+                if not env.valid_pos((new_x, new_y)):
+                    continue
+
+                # Get value of the pos
+                # pos = env.world[new_x][new_y]
+                state_grid.append(env.world[new_x][new_y])
+
+                # We add the newly discovered vein
+                # print("pos: ", pos)
+                # env.discovered_vein[pos] = True
+
+        return State(np.array(state_grid))
+
+    def step(self, pos: (int, int), env: GridEnv, action: int) -> ((int, int), float):
+        """ """
+        new_x, new_y = pos
+
+        match action:
+            case Action.UP:
+                new_y -= 1
+            case Action.DOWN:
+                new_y += 1
+            case Action.LEFT:
+                new_x -= 1
+            case Action.RIGHT:
+                new_x += 1
+
+        reward = -1
+
+        # Agent cannot physically go to the next cell
+        if not env.valid_pos((new_x, new_y)):
+            return ((pos[0], pos[1]), reward - 10)
+
+        cell = env.world[new_x][new_y]
+
+        match cell:
+            case 0:  # next cell is empty
+                return ((new_x, new_y), reward)
+            case 1:  # next cell is part of vein
+                return ((new_x, new_y), reward + 10)
