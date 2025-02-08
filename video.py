@@ -42,7 +42,7 @@ def generate_blobs(rows, cols, fill_ratio, num_blobs):
 
             # Move randomly in four directions
             dx, dy = random.choice([(0, 1), (1, 0), (0, -1), (-1, 0)])
-            x, y = max(0, min(rows - 1, x + dx)), max(0, min(cols - 1, y + dy))  # Stay in bounds
+            x, y = max(0, min(rows - 1, x + dx)), max(0, min(cols - 1, y + dy))  # Stay in bound            
 
     # Distribute steps among blobs
     steps_per_blob = max(1, target_fill // num_blobs)
@@ -50,6 +50,20 @@ def generate_blobs(rows, cols, fill_ratio, num_blobs):
     # Perform random walks for each blob
     for x, y in blob_positions:
         random_walk(x, y, steps_per_blob)
+
+
+    available_steps = []
+    for x in range(rows):
+        for y in range(cols):
+            if array[x, y] == 1:
+                for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+                    new_x, new_y = x + dx, y + dy
+                    if 0 <= new_x < rows and 0 <= new_y < cols and array[new_x, new_y] == 0:
+                        available_steps.append((new_x, new_y))
+    
+    for _ in range(target_fill):
+        x, y = random.choice(available_steps)
+        array[x, y] = 1
 
     return array
 
@@ -84,7 +98,6 @@ def array_to_images(grid):
 
 
 def images_to_video(images, frame_size):
-    # fourcc = cv.VideoWriter_fourcc(*'H264')
     fourcc = cv.VideoWriter_fourcc(*'XVID')
     video = cv.VideoWriter('output.mp4', fourcc, 1, frame_size)
 
@@ -99,7 +112,7 @@ if __name__ == '__main__':
     # rows, cols = 20, 20
     rows, cols = 1000, 1000
     # fill_ratio = 0.3
-    fill_ratio = 0.1
+    fill_ratio = 0.6
     num_blobs = 5
 
     grid = generate_blobs(rows, cols, fill_ratio, num_blobs)
