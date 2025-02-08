@@ -100,15 +100,7 @@ def pixel_to_rgb(pixel):
             return ERROR_COLOR
 
 def grid_to_rgb(grid):
-    rgb_array = []
-    for row in grid:
-        new_row = []
-        for pixel in row:
-            rgb_pixel = pixel_to_rgb(pixel)
-            new_row.append(rgb_pixel)
-        rgb_array.append(new_row)
-
-    return np.array(rgb_array)
+    return np.array([pixel_to_rgb(pixel) for pixel in grid.flatten()]).reshape(grid.shape[0], grid.shape[1], 3)
 
 
 def array_to_images(grid, frame_size):
@@ -131,9 +123,8 @@ def images_to_video(images, frame_size):
 if __name__ == '__main__':
     
     generated_map = generate_blobs(ROWS, COLS, FILL_RATIO, NUM_BLOBS)
-    print(generated_map)
-    rgb_grid = grid_to_rgb(generated_map)
-    image = array_to_images(rgb_grid, FRAME_SIZE)
+    
+    image = array_to_images(grid_to_rgb(generated_map), FRAME_SIZE)
 
     # images_to_video([image, image, image], frame_size)
 
