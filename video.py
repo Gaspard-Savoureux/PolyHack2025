@@ -90,6 +90,7 @@ def generate_blobs(rows, cols, fill_ratio, num_blobs):
 
     return array
 
+
 def pixel_to_rgb(pixel):
     match pixel:
         case 1:
@@ -98,6 +99,7 @@ def pixel_to_rgb(pixel):
             return EMPTY_COLOR
         case _:
             return ERROR_COLOR
+
 
 def grid_to_rgb(grid):
     return np.array([pixel_to_rgb(pixel) for pixel in grid.flatten()]).reshape(grid.shape[0], grid.shape[1], 3)
