@@ -1,6 +1,9 @@
+# Python librairies
 import numpy as np
+import pickle
+
+# local files
 from env import GridEnv
-from enum import Enum
 
 
 class State:
@@ -111,6 +114,10 @@ class Agent:
 
         self.__class__.q_table[(state_key, action)] = new_q
 
-    # def save_q_table(cls, filename):
+    def save_q_table(self, filename):
+        with open(filename, "wb") as f:
+            pickle.dump(dict(self.q_table), f)
 
-    # def load_q_table(cls, filename):
+    def load_q_table(self, filename):
+        with open(filename, "rb") as f:
+            self.q_table.update(pickle.load(f))
