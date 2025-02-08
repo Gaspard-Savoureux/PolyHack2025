@@ -132,6 +132,14 @@ class Agent:
 
     # TODO maybe rename get_sensor_output (for roleplaying reasons)
     def get_state(self, env: GridEnv, pos: (int, int)):
+        '''
+        0: wall
+        1: other_robot
+        2: discovered_empty
+        3: discovered_mineral
+        4: just_discovered_empty
+        5: just_discovered_mineral
+        '''
         x, y = pos
         fov = self.fov
         state_grid = []
@@ -142,11 +150,31 @@ class Agent:
 
                 # if invalid pos, we skip
                 if not env.valid_pos((new_x, new_y)):
-                    continue
+                    state_grid.append(0)
+                elif env.agents[(new_x, new_y)]:
+                    state_grid.append(1)
+                elif env.just_discovered_empty[(new_x, new_y)]:
+                    del env.just_discovered_empty[(new_x, new_y)]
+                    env.discovered_empty[(new_x, new_y)] = 1
+                    state_grid.append(2)
+                elif env.just_discovered_vein[(new_x, new_y)]:
+                    del env.just_discovered_vein[(new_x, new_y)]
+                    env.discovered_vein[(new_x, new_y)] = 1
+                    state_grid.append(3)
+                elif env.discovered_empty[(new_x, new_y)]:
+                    state_grid.append(2)
+                elif env.discovered_vein[(new_x, new_y)]:
+                    state_grid.append(3)
+                elif env.world[new_x][new_y] == 1:
+                    env.just_discovered_vein[(new_x, new_y)] = 1
+                    state_grid.append(5)
+                else:
+                    env.just_discovered_empty[(new_x, new_y)] = 1
+                    state_grid.append(4)
 
                 # Get value of the pos
                 # pos = env.world[new_x][new_y]
-                state_grid.append(env.world[new_x][new_y])
+                # state_grid.append(env.world[new_x][new_y])
 
                 # We add the newly discovered vein
                 # print("pos: ", pos)

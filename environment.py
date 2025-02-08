@@ -35,7 +35,10 @@ class GridEnv:
         # we need a representation that differentiates between recently discovered minerals
         # and minerals that were discovered previously
         # self.recently_discovered = []
+        self.discovered_empty = {}
+        self.just_discovered_empty = {}
         self.discovered_vein = {}
+        self.just_discovered_vein = {}
         self.agents = {}  # {(k: pos, v: agent)}
         self.memory = []
         # Delay import to avoid circular dependency
