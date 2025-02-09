@@ -12,6 +12,8 @@ NUM_BLOBS = 20
 
 # video settings
 CODEC = "XVID"
+# CODEC = "mp4v"
+# CODEC = "H264"
 FRAMES_PER_SECOND = 10
 
 # image settings
@@ -133,7 +135,7 @@ def array_to_image(grid):
     return scaled_image
 
 
-def images_to_video(images, filename="output.mp4"):
+def images_to_video(images, filename="output.avi"):
     codec = cv.VideoWriter_fourcc(*CODEC)
     video = cv.VideoWriter(filename, codec, FRAMES_PER_SECOND, FRAME_SIZE)
 
