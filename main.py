@@ -34,7 +34,7 @@ while True:
         grid_size=160,
         learning_rate=0.9,
         discount_factor=0.94,
-        exploration_rate=0.1,
+        exploration_rate=0.01,
         # num_agent=10,
         # fov=3,
         # grid_size=200,
