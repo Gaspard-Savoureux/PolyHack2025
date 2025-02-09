@@ -11,6 +11,7 @@ class GridEnv:
         self,
         grid_size=50,
         num_agent=10,
+        fov=2,
         agent_start_pos=(0, 0),
         learning_rate=0.9,
         discount_factor=0.99,
@@ -64,7 +65,12 @@ class GridEnv:
 
             x, y = np.random.randint(0, grid_size, 2)
             if not ((x, y) in self.agents):
-                self.agents[(x, y)] = Agent(fov=1)
+                self.agents[(x, y)] = Agent(
+                    fov=fov,
+                    learning_rate=learning_rate,
+                    discount_factor=discount_factor,
+                    exploration_rate=exploration_rate,
+                )
                 i += 1
                 continue
 
@@ -216,7 +222,7 @@ class GridEnv:
         # print("nb agents: ", len(self.agents))
         # print(self.memory)
 
-    def simulate():
+    def simulate(self, num_steps: int = 100, filename="agent.pkl"):
         try:
             self.template_agent.load_q_table(filename)
         except FileNotFoundError:
@@ -235,7 +241,6 @@ class GridEnv:
             # Debug
             # print(world_copy)
 
-        self.template_agent.save_q_table(filename)
         self.snapshot()
         # Debug
         # print("nb agents: ", len(self.agents))
