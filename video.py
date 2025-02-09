@@ -49,59 +49,108 @@ def generate_blobs(rows, cols, fill_ratio, num_blobs):
     # Initialize grid
     array = np.zeros((rows, cols), dtype=int)
 
-    # Generate unique starting positions for each blob
-    blob_positions = set()
-    while len(blob_positions) < num_blobs:
-        blob_positions.add((random.randint(0, rows - 1), random.randint(0, cols - 1)))
+    # Select unique random positions for blobs
+    blob_positions = np.array(
+        random.sample([(x, y) for x in range(rows) for y in range(cols)], num_blobs)
+    )
 
     filled_cells = 0
+    directions = np.array([(0, 1), (1, 0), (0, -1), (-1, 0)])
 
-    # Function to perform random walk from a given position
+    # Function to perform a random walk
     def random_walk(x, y, steps):
         nonlocal filled_cells
         for _ in range(steps):
             if filled_cells >= target_fill:
                 return
-            if array[x, y] == 0:  # Avoid double counting
+            if array[x, y] == 0:  # Fill only if empty
                 array[x, y] = 1
                 filled_cells += 1
 
-            # Move randomly in four directions
-            dx, dy = random.choice([(0, 1), (1, 0), (0, -1), (-1, 0)])
-            x, y = max(0, min(rows - 1, x + dx)), max(
-                0, min(cols - 1, y + dy)
-            )  # Stay in bound
-
-    # Distribute steps among blobs
-    steps_per_blob = max(1, target_fill // num_blobs)
+            # Move randomly while ensuring in-bounds movement
+            dx, dy = directions[random.randint(0, 3)]
+            x, y = np.clip(x + dx, 0, rows - 1), np.clip(y + dy, 0, cols - 1)
 
     # Perform random walks for each blob
+    steps_per_blob = max(1, target_fill // num_blobs)
     for x, y in blob_positions:
         random_walk(x, y, steps_per_blob)
 
-    available_steps = []
-    for x in range(rows):
-        for y in range(cols):
-            if array[x, y] == 1:
-                for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
-                    new_x, new_y = x + dx, y + dy
-                    if (
-                        0 <= new_x < rows
-                        and 0 <= new_y < cols
-                        and array[new_x, new_y] == 0
-                    ):
-                        available_steps.append((new_x, new_y))
-
-    for _ in range(target_fill):
-        x, y = random.choice(available_steps)
-        array[x, y] = 1
-        available_steps.remove((x, y))
-        for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
-            new_x, new_y = x + dx, y + dy
-            if 0 <= new_x < rows and 0 <= new_y < cols:
-                available_steps.append((new_x, new_y))
-
     return array
+
+
+# def generate_blobs(rows, cols, fill_ratio, num_blobs):
+#     """
+#     Generates a 2D array with multiple random blobs while ensuring a specific fill ratio.
+
+#     Parameters:
+#     - rows (int): Number of rows in the grid.
+#     - cols (int): Number of columns in the grid.
+#     - fill_ratio (float): Target ratio of filled cells (0 to 1).
+#     - num_blobs (int): Number of distinct blobs.
+
+#     Returns:
+#     - np.array: A 2D numpy array with 0s (empty) and 1s (filled blobs).
+#     """
+#     grid_size = rows * cols
+#     target_fill = int(grid_size * fill_ratio)
+
+#     # Initialize grid
+#     array = np.zeros((rows, cols), dtype=int)
+
+#     # Generate unique starting positions for each blob
+#     blob_positions = set()
+#     while len(blob_positions) < num_blobs:
+#         blob_positions.add((random.randint(0, rows - 1), random.randint(0, cols - 1)))
+
+#     filled_cells = 0
+
+#     # Function to perform random walk from a given position
+#     def random_walk(x, y, steps):
+#         nonlocal filled_cells
+#         for _ in range(steps):
+#             if filled_cells >= target_fill:
+#                 return
+#             if array[x, y] == 0:  # Avoid double counting
+#                 array[x, y] = 1
+#                 filled_cells += 1
+
+#             # Move randomly in four directions
+#             dx, dy = random.choice([(0, 1), (1, 0), (0, -1), (-1, 0)])
+#             x, y = max(0, min(rows - 1, x + dx)), max(
+#                 0, min(cols - 1, y + dy)
+#             )  # Stay in bound
+
+#     # Distribute steps among blobs
+#     steps_per_blob = max(1, target_fill // num_blobs)
+
+#     # Perform random walks for each blob
+#     for x, y in blob_positions:
+#         random_walk(x, y, steps_per_blob)
+
+#     available_steps = []
+#     for x in range(rows):
+#         for y in range(cols):
+#             if array[x, y] == 1:
+#                 for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+#                     new_x, new_y = x + dx, y + dy
+#                     if (
+#                         0 <= new_x < rows
+#                         and 0 <= new_y < cols
+#                         and array[new_x, new_y] == 0
+#                     ):
+#                         available_steps.append((new_x, new_y))
+
+#     for _ in range(target_fill):
+#         x, y = random.choice(available_steps)
+#         array[x, y] = 1
+#         available_steps.remove((x, y))
+#         for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+#             new_x, new_y = x + dx, y + dy
+#             if 0 <= new_x < rows and 0 <= new_y < cols:
+#                 available_steps.append((new_x, new_y))
+
+#     return array
 
 
 def pixel_to_rgb(pixel):
