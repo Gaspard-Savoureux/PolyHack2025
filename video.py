@@ -21,6 +21,11 @@ FRAME_SIZE = (1000, 1000)  # (width, height)
 MINERAL_COLOR = np.array([50, 50, 50])
 EMPTY_COLOR = np.array([150, 150, 150])
 ERROR_COLOR = np.array([255, 0, 0])
+AGENT = np.array([0, 255, 255])
+DISCOVERED_EMPTY = np.array([100, 100, 100])
+JUST_DISCOVERED_EMPTY = np.array([50, 50, 50])
+DISCOVERED_MINERAL = np.array([255, 255, 0])
+JUST_DISCOVERED_MINERAL = np.array([200, 200, 0])
 
 
 def generate_blobs(rows, cols, fill_ratio, num_blobs):
@@ -93,10 +98,18 @@ def generate_blobs(rows, cols, fill_ratio, num_blobs):
 
 def pixel_to_rgb(pixel):
     match pixel:
-        case 1:
-            return MINERAL_COLOR
         case 0:
             return EMPTY_COLOR
+        case 1:
+            return MINERAL_COLOR
+        case 2:
+            return DISCOVERED_EMPTY
+        case 3:
+            return JUST_DISCOVERED_EMPTY
+        case 4:
+            return DISCOVERED_MINERAL
+        case 5:
+            return JUST_DISCOVERED_MINERAL
         case _:
             return ERROR_COLOR
 
@@ -121,6 +134,21 @@ def images_to_video(images):
 
     video.release()
 
+
+def draw_environment(grid, grid_env_memory):
+    for (x, y) in grid_env_memory.agents:
+        grid[x][y] = AGENT
+    for (x, y) in grid_env_memory.discovered_empty:
+        grid[x][y] = DISCOVERED_EMPTY
+    for (x, y) in grid_env_memory.just_discovered_empty:
+        grid[x][y] = JUST_DISCOVERED_EMPTY
+    for (x, y) in grid_env_memory.discovered_vein:
+        grid[x][y] = DISCOVERED_MINERAL
+    for (x, y) in grid_env_memory.just_discovered_vein:
+        grid[x][y] = JUST_DISCOVERED_MINERAL
+
+    return grid
+    
 
 if __name__ == '__main__':
     
