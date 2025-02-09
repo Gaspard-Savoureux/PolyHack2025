@@ -16,6 +16,10 @@ class State:
 
     def __init__(self, grid):
         self.grid = grid
+        self.up = None
+        self.down = None
+        self.d = None
+        self.up = None
 
     def __eq__(self, other):
         return np.array_equal(self.grid, other.grid)
@@ -36,6 +40,16 @@ class Action:
     DOWN = 1
     LEFT = 2
     RIGHT = 3
+
+
+class CellType:
+    WALL = 0
+    OTHER_AGENT = 1
+    DISCOVERED_EMPTY = 2
+    DISCOVERED_MINERAL = 3
+    JUST_DISCOVERED_EMPTY = 4
+    JUST_DISCOVERED_MINERAL = 5
+    SELF = 6
 
 
 class Agent:
@@ -132,14 +146,14 @@ class Agent:
 
     # TODO maybe rename get_sensor_output (for roleplaying reasons)
     def get_state(self, env: GridEnv, pos: (int, int)):
-        '''
+        """
         0: wall
         1: other_robot
         2: discovered_empty
         3: discovered_mineral
         4: just_discovered_empty
         5: just_discovered_mineral
-        '''
+        """
         x, y = pos
         fov = self.fov
         state_grid = []
@@ -148,29 +162,36 @@ class Agent:
                 new_x = x + dx
                 new_y = y + dy
 
-                # if invalid pos, we skip
-                if not env.valid_pos((new_x, new_y)):
-                    state_grid.append(0)
-                elif env.agents[(new_x, new_y)]:
-                    state_grid.append(1)
-                elif env.just_discovered_empty[(new_x, new_y)]:
+                if env.out_of_bound((new_x, new_y)):  # out_of_bound
+                    state_grid.append(CellType.WALL)
+                elif (new_x, new_y) == (x, y):
+                    state_grid.append(-1)
+                elif env.occupied((new_x, new_y)):  # occupied by another agent
+                    state_grid.append(CellType.OTHER_AGENT)
+                elif (
+                    new_x,
+                    new_y,
+                ) in env.just_discovered_empty:  # next  JUST pos is empty
                     del env.just_discovered_empty[(new_x, new_y)]
                     env.discovered_empty[(new_x, new_y)] = 1
-                    state_grid.append(2)
-                elif env.just_discovered_vein[(new_x, new_y)]:
+                    state_grid.append(CellType.DISCOVERED_EMPTY)
+                elif (
+                    new_x,
+                    new_y,
+                ) in env.just_discovered_vein:  # next pos is part of vein
                     del env.just_discovered_vein[(new_x, new_y)]
                     env.discovered_vein[(new_x, new_y)] = 1
-                    state_grid.append(3)
-                elif env.discovered_empty[(new_x, new_y)]:
-                    state_grid.append(2)
-                elif env.discovered_vein[(new_x, new_y)]:
-                    state_grid.append(3)
+                    state_grid.append(CellType.DISCOVERED_MINERAL)
+                elif (new_x, new_y) in env.discovered_empty:  # next post  is empty
+                    state_grid.append(CellType.DISCOVERED_EMPTY)
+                elif (new_x, new_y) in env.discovered_vein:
+                    state_grid.append(CellType.DISCOVERED_MINERAL)
                 elif env.world[new_x][new_y] == 1:
                     env.just_discovered_vein[(new_x, new_y)] = 1
-                    state_grid.append(5)
+                    state_grid.append(CellType.JUST_DISCOVERED_MINERAL)
                 else:
                     env.just_discovered_empty[(new_x, new_y)] = 1
-                    state_grid.append(4)
+                    state_grid.append(CellType.JUST_DISCOVERED_EMPTY)
 
                 # Get value of the pos
                 # pos = env.world[new_x][new_y]
@@ -182,31 +203,62 @@ class Agent:
 
         return State(np.array(state_grid))
 
-    def step(self, pos: (int, int), env: GridEnv, action: int) -> ((int, int), float):
+    # prends la position
+    def step(
+        self, pos: (int, int), env: GridEnv, next_state: State, action: int
+    ) -> ((int, int), float):
         """ """
         # print("pos: ", pos)
         new_x, new_y = pos
+        cell_type = -1
 
         match action:
             case Action.UP:
                 new_y -= 1
+                cell_type = next_state.grid[
+                    len(next_state.grid) // 2 - 2 * self.fov - 1
+                ]
+                # cell_type = next_state.grid[len(next_state.grid) // 2 - 2 * self.fov]
             case Action.DOWN:
                 new_y += 1
+                cell_type = next_state.grid[
+                    len(next_state.grid) // 2 + 2 * self.fov + 1
+                ]
             case Action.LEFT:
                 new_x -= 1
+                cell_type = next_state.grid[len(next_state.grid) // 2 - 1]
             case Action.RIGHT:
                 new_x += 1
+                cell_type = next_state.grid[len(next_state.grid) // 2 + 1]
 
         reward = -1
-
+        print("position:", (new_x, new_y))
         # Agent cannot physically go to the next cell
-        if not env.valid_pos((new_x, new_y)):
+        if env.out_of_bound((new_x, new_y)):
             return ((pos[0], pos[1]), reward - 10)
 
-        cell = env.world[new_x][new_y]
+        print("state:", next_state.grid)
+        print("milliey:", next_state.grid[len(next_state.grid) // 2])
+        print("UP:", next_state.grid[len(next_state.grid) // 2 - 2 * self.fov - 1])
+        print("DOWN:", next_state.grid[len(next_state.grid) // 2 + 2 * self.fov + 1])
+        print("LEFT:", next_state.grid[len(next_state.grid) // 2 - 1])
+        print("RIGHT:", next_state.grid[len(next_state.grid) // 2 + 1])
+        # print("cell_type:", next_state.grid[len(next_state.grid) // 2 - 2 * self.fov])
+        print("cell_type:", cell_type)
+        # cell = env.world[new_x][new_y]
 
-        match cell:
-            case 0:  # next cell is empty
-                return ((new_x, new_y), reward)
-            case 1:  # next cell is part of vein
-                return ((pos[0], pos[1]), reward + 10)
+        match cell_type:
+            # case CellType.WALL:
+            #     return ((pos[0], pos[1]), reward - 10)
+            case CellType.OTHER_AGENT:
+                return ((pos[0], pos[1]), reward + 1)
+            case CellType.DISCOVERED_EMPTY:
+                return ((new_x, new_y), reward - 1)
+            case CellType.DISCOVERED_MINERAL:
+                return ((new_x, new_y), reward + 2)
+            case CellType.JUST_DISCOVERED_EMPTY:
+                return ((new_x, new_y), reward + 5)
+            case CellType.JUST_DISCOVERED_MINERAL:
+                return ((new_x, new_y), reward + 30)
+            case _:
+                print("cell: ", cell_type)

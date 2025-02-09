@@ -50,7 +50,7 @@ class GridEnv:
 
             x, y = np.random.randint(0, grid_size, 2)
             if not ((x, y) in self.agents):
-                self.agents[(x, y)] = Agent(fov=3)
+                self.agents[(x, y)] = Agent(fov=1)
                 i += 1
                 continue
 
@@ -67,11 +67,13 @@ class GridEnv:
         return valid_x and valid_y and not another_agent_present
 
     def out_of_bound(self, pos: (int, int)) -> bool:
+        x, y = pos
         valid_x = x >= 0 and x < self.grid_size
         valid_y = y >= 0 and y < self.grid_size
-        return valid_x and valid_y
+        return not (valid_x and valid_y)
 
     def occupied(self, pos: (int, int)) -> bool:
+        x, y = pos
         another_agent_present = (x, y) in self.agents
         return another_agent_present
 
@@ -79,20 +81,24 @@ class GridEnv:
         for position, agent in list(self.agents.items()):
             state = agent.state
             action = agent.choose_action(state, self)
+            print("state: ", state)
+            print("action: ", action)
 
             next_state = agent.get_state(self, position)
+            print("next_state: ", next_state)
 
-            (next_position, reward) = agent.step(position, self, action)
+            (next_position, reward) = agent.step(position, self, next_state, action)
 
             # Update q_table
             agent.update_q_table(state, action, reward, next_state)
 
+            agent.state = next_state
             if position != next_position:
                 # self.agents[next_position].append(self.agents.pop(i))
                 self.agents[next_position] = self.agents.pop(position)
-            else:
-                agent.state = next_state
-                # self.agents[next_position].state = next_state
+            # else:
+            #     agent.state = next_state
+            # self.agents[next_position].state = next_state
 
     def train(self, num_steps=50):
         print("nb agents: ", len(self.agents))
