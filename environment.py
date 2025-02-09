@@ -59,6 +59,7 @@ class GridEnv:
             for j in range(grid_size - 1, grid_size - 4, -1):
                 self.world[i][j] = 1
 
+
     def valid_pos(self, pos: (int, int)) -> bool:
         x, y = pos
         valid_x = x >= 0 and x < self.grid_size
@@ -77,28 +78,57 @@ class GridEnv:
         another_agent_present = (x, y) in self.agents
         return another_agent_present
 
+    # 
+    def apply_action(self, position, agent, action):
+        x, y = position
+
+        # Déterminer la nouvelle position en fonction de l'action
+        if action == 0:  # Up
+            new_position = (x, y - 1)
+        elif action == 1:  # Down
+            new_position = (x, y + 1)
+        elif action == 2:  # Left
+            new_position = (x - 1, y)
+        elif action == 3:  # Right
+            new_position = (x + 1, y)
+        else:
+            new_position = position  # Pas de mouvement si action invalide
+
+        # Vérifier si la position est valide
+        return new_position if self.valid_pos(new_position) else position
+
+
+            
+        
+    
+
     def step(self):
+        new_agent_positions = {}  # Dictionnaire pour stocker les nouvelles positions
+
         for position, agent in list(self.agents.items()):
             state = agent.state
             action = agent.choose_action(state, self)
-            print("state: ", state)
-            print("action: ", action)
 
-            next_state = agent.get_state(self, position)
-            print("next_state: ", next_state)
+            next_position = self.apply_action(position, agent, action)
 
-            (next_position, reward) = agent.step(position, self, next_state, action)
+            next_state = agent.get_state(self, next_position)
+            agent.state = next_state 
+            reward = next_state.get_reward()
 
             # Update q_table
             agent.update_q_table(state, action, reward, next_state)
 
-            agent.state = next_state
-            if position != next_position:
-                # self.agents[next_position].append(self.agents.pop(i))
-                self.agents[next_position] = self.agents.pop(position)
-            # else:
-            #     agent.state = next_state
-            # self.agents[next_position].state = next_state
+            # Ajouter l'agent à sa nouvelle position seulement si elle est libre
+            if next_position not in new_agent_positions:
+                new_agent_positions[next_position] = agent
+            else:
+                new_agent_positions[position] = agent  # Garde l'agent à sa position initiale
+
+        # Mettre à jour la grille des agents
+        self.agents = new_agent_positions
+
+
+
 
     def train(self, num_steps=50):
         print("nb agents: ", len(self.agents))
