@@ -85,10 +85,6 @@ class GridEnv:
         return another_agent_present
 
     def snapshot(self):
-        # agents_info = []
-        # for (x, y), agent in list(self.agents.items()):
-        #     agents_info.append((x, y))
-        # self.memory.append(agents_info)
         self.memory.append(
             {
                 "agents": [pos for pos, agent in self.agents.items()],
