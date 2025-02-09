@@ -2,6 +2,7 @@ import numpy as np
 
 import random
 
+
 # from .agent import Agent
 
 
@@ -43,6 +44,7 @@ class GridEnv:
         self.memory = []
         # Delay import to avoid circular dependency
         from agent import Agent
+        from video import generate_blobs
 
         # workaround to load an agent to save file later on
         # thank you python for being such an excellent language 🖕
@@ -59,6 +61,7 @@ class GridEnv:
                 continue
 
         # Initialize veins
+        self.world = generate_blobs(self.grid_size, self.grid_size, 0.1, 10)
         for i in range(grid_size - 1, grid_size - 4, -1):
             for j in range(grid_size - 1, grid_size - 4, -1):
                 self.world[i][j] = 1
@@ -81,6 +84,45 @@ class GridEnv:
         another_agent_present = (x, y) in self.agents
         return another_agent_present
 
+    def snapshot(self):
+        # agents_info = []
+        # for (x, y), agent in list(self.agents.items()):
+        #     agents_info.append((x, y))
+        # self.memory.append(agents_info)
+        self.memory.append(
+            {
+                "agents": [pos for pos, agent in self.agents.items()],
+                "discovered_empty": dict(self.discovered_empty),
+                "just_discovered_empty": dict(self.just_discovered_empty),
+                "discovered_vein": dict(self.discovered_vein),
+                "just_discovered_vein": dict(self.just_discovered_vein),
+            }
+        )
+
+    def render(self):
+        fig, ax = plt.subplots()
+        grid = np.zeros((self.grid_size, self.grid_size, 3))
+        im = ax.imshow(grid, interpolation="nearest")
+
+        def update(frame):
+            grid = np.zeros((self.grid_size, self.grid_size, 3))
+            grid[:, :, 1] = self.vegetation * 0.5
+            for x, y, agent_type in self.memory[frame]:
+                if agent_type == 1:
+                    grid[x, y] = [0, 0, 1]
+                else:
+                    grid[x, y] = [1, 0, 0]
+            im.set_data(grid)
+            return (im,)
+
+        ani = animation.FuncAnimation(
+            fig, update, frames=len(self.memory), interval=200, blit=True
+        )
+        plt.title("Predator-Prey Simulation")
+        plt.axis("off")
+        ani.save("simulation.mp4", writer="ffmpeg", fps=5)
+        plt.close()
+
     #
     def apply_action(self, position, agent, action):
         x, y = position
@@ -101,6 +143,7 @@ class GridEnv:
         return new_position if self.valid_pos(new_position) else position
 
     def step(self):
+        self.snapshot()
         new_agent_positions = {}  # Dictionnaire pour stocker les nouvelles positions
 
         for position, agent in list(self.agents.items()):
@@ -154,3 +197,5 @@ class GridEnv:
 
         self.template_agent.save_q_table(filename)
         print("nb agents: ", len(self.agents))
+        self.snapshot()
+        print(self.memory)
