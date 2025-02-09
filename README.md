@@ -27,10 +27,6 @@ python3 main.py
 
 ## Démos
 
-Premier prototype:
+**Premier prototype:**
 
-<!-- ![proto-1](./videos/proto_1.mp4) -->
-
-<video width="320" height="240" controls>
-  <source src="/videos/proto_1.mp4" type="video/mp4">
-</video>
+![proto-1](./videos/proto_1.gif)
