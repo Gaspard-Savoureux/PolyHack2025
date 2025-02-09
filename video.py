@@ -14,7 +14,7 @@ NUM_BLOBS = 20
 CODEC = "XVID"
 # CODEC = "mp4v"
 # CODEC = "H264"
-FRAMES_PER_SECOND = 10
+FRAMES_PER_SECOND = 90
 
 # image settings
 FRAME_SIZE = (1000, 1000)  # (width, height)
