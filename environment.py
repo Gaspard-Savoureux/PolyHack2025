@@ -7,7 +7,15 @@ import random
 
 
 class GridEnv:
-    def __init__(self, grid_size=50, num_agent=10, agent_start_pos=(0, 0)):
+    def __init__(
+        self,
+        grid_size=50,
+        num_agent=10,
+        agent_start_pos=(0, 0),
+        learning_rate=0.9,
+        discount_factor=0.99,
+        exploration_rate=0.2,
+    ):
         """
         A class used to represent the world
 
@@ -109,6 +117,7 @@ class GridEnv:
             }
         )
 
+    # backup function
     def render(self):
         fig, ax = plt.subplots()
         grid = np.zeros((self.grid_size, self.grid_size, 3))
@@ -181,7 +190,7 @@ class GridEnv:
         self.agents = new_agent_positions
 
     def train(self, num_steps=50, filename="agent.pkl"):
-        print("nb agents: ", len(self.agents))
+        # print("nb agents: ", len(self.agents))
 
         try:
             self.template_agent.load_q_table(filename)
@@ -191,11 +200,31 @@ class GridEnv:
         for step in range(num_steps):
             self.step()
 
+            # world_copy = np.copy(self.world)
+
+            # for x, y in self.discovered_vein.keys():
+            #     world_copy[x][y] = 3
+            # for x, y in self.agents.keys():
+            #     world_copy[x][y] = 2
+
             # Debug
-            # agents_pos = [pos for pos, agent in list(self.agents.items())]
-            # for pos, agent in list(self.agents.items()):
-            #     print("pos", pos, " agent", agent)
-            # print("nb agents: ", len(self.agents))
+            # print(world_copy)
+
+        self.template_agent.save_q_table(filename)
+        self.snapshot()
+        # Debug
+        # print("nb agents: ", len(self.agents))
+        # print(self.memory)
+
+    def simulate():
+        try:
+            self.template_agent.load_q_table(filename)
+        except FileNotFoundError:
+            pass
+
+        for step in range(num_steps):
+            self.step()
+
             world_copy = np.copy(self.world)
 
             for x, y in self.discovered_vein.keys():
@@ -203,9 +232,11 @@ class GridEnv:
             for x, y in self.agents.keys():
                 world_copy[x][y] = 2
 
-            print(world_copy)
+            # Debug
+            # print(world_copy)
 
         self.template_agent.save_q_table(filename)
-        print("nb agents: ", len(self.agents))
         self.snapshot()
-        print(self.memory)
+        # Debug
+        # print("nb agents: ", len(self.agents))
+        # print(self.memory)

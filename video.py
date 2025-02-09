@@ -11,8 +11,8 @@ FILL_RATIO = 0.2
 NUM_BLOBS = 20
 
 # video settings
-CODEC = 'XVID'
-FRAMES_PER_SECOND = 1
+CODEC = "XVID"
+FRAMES_PER_SECOND = 10
 
 # image settings
 FRAME_SIZE = (1000, 1000)  # (width, height)
@@ -21,7 +21,7 @@ FRAME_SIZE = (1000, 1000)  # (width, height)
 MINERAL_COLOR = np.array([50, 50, 50])
 EMPTY_COLOR = np.array([150, 150, 150])
 ERROR_COLOR = np.array([255, 0, 0])
-AGENT = np.array([0, 255, 255])
+AGENT = np.array([80, 255, 80])
 DISCOVERED_EMPTY = np.array([100, 100, 100])
 JUST_DISCOVERED_EMPTY = np.array([50, 50, 50])
 DISCOVERED_MINERAL = np.array([255, 255, 0])
@@ -43,7 +43,7 @@ def generate_blobs(rows, cols, fill_ratio, num_blobs):
     """
     grid_size = rows * cols
     target_fill = int(grid_size * fill_ratio)
-    
+
     # Initialize grid
     array = np.zeros((rows, cols), dtype=int)
 
@@ -66,7 +66,9 @@ def generate_blobs(rows, cols, fill_ratio, num_blobs):
 
             # Move randomly in four directions
             dx, dy = random.choice([(0, 1), (1, 0), (0, -1), (-1, 0)])
-            x, y = max(0, min(rows - 1, x + dx)), max(0, min(cols - 1, y + dy))  # Stay in bound
+            x, y = max(0, min(rows - 1, x + dx)), max(
+                0, min(cols - 1, y + dy)
+            )  # Stay in bound
 
     # Distribute steps among blobs
     steps_per_blob = max(1, target_fill // num_blobs)
@@ -81,7 +83,11 @@ def generate_blobs(rows, cols, fill_ratio, num_blobs):
             if array[x, y] == 1:
                 for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
                     new_x, new_y = x + dx, y + dy
-                    if 0 <= new_x < rows and 0 <= new_y < cols and array[new_x, new_y] == 0:
+                    if (
+                        0 <= new_x < rows
+                        and 0 <= new_y < cols
+                        and array[new_x, new_y] == 0
+                    ):
                         available_steps.append((new_x, new_y))
 
     for _ in range(target_fill):
@@ -115,7 +121,9 @@ def pixel_to_rgb(pixel):
 
 
 def grid_to_rgb(grid):
-    return np.array([pixel_to_rgb(pixel) for pixel in grid.flatten()]).reshape(grid.shape[0], grid.shape[1], 3)
+    return np.array([pixel_to_rgb(pixel) for pixel in grid.flatten()]).reshape(
+        grid.shape[0], grid.shape[1], 3
+    )
 
 
 def array_to_image(grid):
@@ -125,9 +133,9 @@ def array_to_image(grid):
     return scaled_image
 
 
-def images_to_video(images):
+def images_to_video(images, filename="output.mp4"):
     codec = cv.VideoWriter_fourcc(*CODEC)
-    video = cv.VideoWriter('output.mp4', codec, FRAMES_PER_SECOND, FRAME_SIZE)
+    video = cv.VideoWriter(filename, codec, FRAMES_PER_SECOND, FRAME_SIZE)
 
     for image in images:
         video.write(image)
@@ -136,30 +144,30 @@ def images_to_video(images):
 
 
 def draw_environment(grid, grid_env_memory):
-    for (x, y) in grid_env_memory.agents:
-        grid[x][y] = AGENT
-    for (x, y) in grid_env_memory.discovered_empty:
-        grid[x][y] = DISCOVERED_EMPTY
-    for (x, y) in grid_env_memory.just_discovered_empty:
-        grid[x][y] = JUST_DISCOVERED_EMPTY
-    for (x, y) in grid_env_memory.discovered_vein:
-        grid[x][y] = DISCOVERED_MINERAL
-    for (x, y) in grid_env_memory.just_discovered_vein:
-        grid[x][y] = JUST_DISCOVERED_MINERAL
+    for x, y in grid_env_memory["discovered_empty"]:
+        grid[x][y] = 4  # DISCOVERED_EMPTY
+    for x, y in grid_env_memory["discovered_vein"]:
+        grid[x][y] = 6  # DISCOVERED_MINERAL
+    for x, y in grid_env_memory["just_discovered_empty"]:
+        grid[x][y] = 5  # JUST_DISCOVERED_EMPTY
+    for x, y in grid_env_memory["just_discovered_vein"]:
+        grid[x][y] = 7  # JUST_DISCOVERED_MINERAL
+    for x, y in grid_env_memory["agents"]:
+        grid[x][y] = 3  # AGENT
 
     return grid
-    
 
-if __name__ == '__main__':
-    
+
+if __name__ == "__main__":
+
     generated_map = generate_blobs(ROWS, COLS, FILL_RATIO, NUM_BLOBS)
-    
+
     image = array_to_image(grid_to_rgb(generated_map))
 
     # images_to_video([image, image, image], frame_size)
 
     # image = np.hstack((image, image))
 
-    cv.imshow('test', image)
+    cv.imshow("test", image)
     cv.waitKey(0)
     cv.destroyAllWindows()

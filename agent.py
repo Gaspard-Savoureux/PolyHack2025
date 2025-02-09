@@ -20,12 +20,12 @@ class State:
 
     def get_reward(self):
         reward_mapping = {
-            0: -3,  # WALL
+            0: -10,  # WALL
             1: -1,  # OTHER_AGENT
-            2: 0,  # DISCOVERED_EMPTY
-            3: 1,  # DISCOVERED_MINERAL
-            4: 2,  # JUST_DISCOVERED_EMPTY
-            5: 10,  # JUST_DISCOVERED_MINERAL
+            2: -1,  # DISCOVERED_EMPTY
+            3: -1,  # DISCOVERED_MINERAL
+            4: 4,  # JUST_DISCOVERED_EMPTY
+            5: 25,  # JUST_DISCOVERED_MINERAL
         }
         return sum(reward_mapping.get(cell, 0) for cell in self.grid)
 
