@@ -27,6 +27,12 @@ python3 main.py
 
 ## Démos
 
-**Premier prototype:**
+**Premier prototype à l'entraînement:**
 
 ![proto-1](./videos/proto_1.gif)
+
+
+**Simulation après 1000 itérations**
+| Training | Simulating |
+|--|--|
+| ![training](./videos/training.gif)| ![simulating](./videos/simulating.gif)|
