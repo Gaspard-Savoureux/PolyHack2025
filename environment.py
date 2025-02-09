@@ -44,6 +44,10 @@ class GridEnv:
         # Delay import to avoid circular dependency
         from agent import Agent
 
+        # workaround to load an agent to save file later on
+        # thank you python for being such an excellent language 🖕
+        self.template_agent = Agent()
+
         # Initialize agents
         i = 0
         while i < num_agent:
@@ -58,7 +62,6 @@ class GridEnv:
         for i in range(grid_size - 1, grid_size - 4, -1):
             for j in range(grid_size - 1, grid_size - 4, -1):
                 self.world[i][j] = 1
-
 
     def valid_pos(self, pos: (int, int)) -> bool:
         x, y = pos
@@ -78,7 +81,7 @@ class GridEnv:
         another_agent_present = (x, y) in self.agents
         return another_agent_present
 
-    # 
+    #
     def apply_action(self, position, agent, action):
         x, y = position
 
@@ -97,11 +100,6 @@ class GridEnv:
         # Vérifier si la position est valide
         return new_position if self.valid_pos(new_position) else position
 
-
-            
-        
-    
-
     def step(self):
         new_agent_positions = {}  # Dictionnaire pour stocker les nouvelles positions
 
@@ -112,7 +110,7 @@ class GridEnv:
             next_position = self.apply_action(position, agent, action)
 
             next_state = agent.get_state(self, next_position)
-            agent.state = next_state 
+            agent.state = next_state
             reward = next_state.get_reward()
 
             # Update q_table
@@ -122,16 +120,21 @@ class GridEnv:
             if next_position not in new_agent_positions:
                 new_agent_positions[next_position] = agent
             else:
-                new_agent_positions[position] = agent  # Garde l'agent à sa position initiale
+                new_agent_positions[position] = (
+                    agent  # Garde l'agent à sa position initiale
+                )
 
         # Mettre à jour la grille des agents
         self.agents = new_agent_positions
 
-
-
-
-    def train(self, num_steps=50):
+    def train(self, num_steps=50, filename="agent.pkl"):
         print("nb agents: ", len(self.agents))
+
+        try:
+            self.template_agent.load_q_table(filename)
+        except FileNotFoundError:
+            pass
+
         for step in range(num_steps):
             self.step()
 
@@ -149,4 +152,5 @@ class GridEnv:
 
             print(world_copy)
 
+        self.template_agent.save_q_table(filename)
         print("nb agents: ", len(self.agents))

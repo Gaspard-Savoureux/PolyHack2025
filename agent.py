@@ -14,8 +14,6 @@ class State:
     The state of an agent at a given time
     """
 
-    
-
     def __init__(self, grid):
         self.grid = grid
         self.reward = self.get_reward()
@@ -24,13 +22,12 @@ class State:
         reward_mapping = {
             0: -3,  # WALL
             1: -1,  # OTHER_AGENT
-            2: 0,   # DISCOVERED_EMPTY
-            3: 1,   # DISCOVERED_MINERAL
-            4: 2,   # JUST_DISCOVERED_EMPTY
-            5: 10   # JUST_DISCOVERED_MINERAL
+            2: 0,  # DISCOVERED_EMPTY
+            3: 1,  # DISCOVERED_MINERAL
+            4: 2,  # JUST_DISCOVERED_EMPTY
+            5: 10,  # JUST_DISCOVERED_MINERAL
         }
         return sum(reward_mapping.get(cell, 0) for cell in self.grid)
-
 
     def __eq__(self, other):
         return np.array_equal(self.grid, other.grid)
@@ -94,21 +91,16 @@ class Agent:
 
     def __init__(
         self,
-        # x: int,
-        # y: int,
         fov: int = 3,
         learning_rate: float = 0.90,
         discount_factor: float = 0.99,
         exploration_rate: float = 0.2,
     ):
-        # self.x = x
-        # self.y = y
         self.fov = fov
         self.learning_rate = learning_rate
         self.discount_factor = discount_factor
         self.exploration_rate = exploration_rate
         self.state = State([0])  # CHARGER L'etat reel
-        # self.actions = [] // Possibly useless, will use class Action
 
     def choose_action(self, state, env) -> int:
         actions = [
@@ -155,7 +147,7 @@ class Agent:
         with open(filename, "rb") as f:
             self.q_table.update(pickle.load(f))
 
-    # TODO maybe rename get_sensor_output (for roleplaying reasons)
+    # Shamefully unreadable code
     def get_state(self, env: GridEnv, pos: (int, int)):
         """
         0: wall
@@ -175,10 +167,12 @@ class Agent:
 
                 if env.out_of_bound((new_x, new_y)):  # out_of_bound
                     state_grid.append(CellType.WALL)
- 
-                elif env.occupied((new_x, new_y)) and (new_x != x and new_y != y) :  # occupied by another agent
+
+                elif env.occupied((new_x, new_y)) and (
+                    new_x != x and new_y != y
+                ):  # occupied by another agent
                     state_grid.append(CellType.OTHER_AGENT)
-                elif (new_x, new_y) in env.just_discovered_empty:  
+                elif (new_x, new_y) in env.just_discovered_empty:
                     del env.just_discovered_empty[(new_x, new_y)]
                     env.discovered_empty[(new_x, new_y)] = 1
                     state_grid.append(CellType.DISCOVERED_EMPTY)
@@ -200,8 +194,4 @@ class Agent:
                     env.just_discovered_empty[(new_x, new_y)] = 1
                     state_grid.append(CellType.JUST_DISCOVERED_EMPTY)
 
-
-
         return State(np.array(state_grid))
-
-    
