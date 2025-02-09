@@ -85,13 +85,27 @@ class GridEnv:
         return another_agent_present
 
     def snapshot(self):
+        # self.memory.append(
+        #     {
+        #         "agents": [pos for pos, agent in self.agents.items()],
+        #         "discovered_empty": dict(self.discovered_empty),
+        #         "just_discovered_empty": dict(self.just_discovered_empty),
+        #         "discovered_vein": dict(self.discovered_vein),
+        #         "just_discovered_vein": dict(self.just_discovered_vein),
+        #     }
+        # )
+
         self.memory.append(
             {
                 "agents": [pos for pos, agent in self.agents.items()],
-                "discovered_empty": dict(self.discovered_empty),
-                "just_discovered_empty": dict(self.just_discovered_empty),
-                "discovered_vein": dict(self.discovered_vein),
-                "just_discovered_vein": dict(self.just_discovered_vein),
+                "discovered_empty": [pos for pos, _ in self.discovered_empty.items()],
+                "just_discovered_empty": [
+                    pos for pos, _ in self.just_discovered_empty.items()
+                ],
+                "discovered_vein": [pos for pos, _ in self.discovered_vein.items()],
+                "just_discovered_vein": [
+                    pos for pos, _ in self.just_discovered_vein.items()
+                ],
             }
         )
 
